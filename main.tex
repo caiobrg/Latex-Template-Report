@@ -1,0 +1,70 @@
+% In: main.tex
+\documentclass[12pt, a4paper, twoside]{report}
+
+%=====================================================
+% PREAMBLE: Load all packages and custom settings
+%=====================================================
+\input{settings/packages.tex}
+\input{settings/lststyles.tex}
+\input{settings/commands.tex}
+
+%=====================================================
+% DOCUMENT-SPECIFIC INFORMATION (METADATA)
+% Define all variables for this specific document here.
+%=====================================================
+% --- Main Info ---
+\title{TITLE}
+\author{AUTHOR}
+\date{\today}
+
+% --- Custom Variables ---
+\newcommand{\myheadertitle}{HEADER TITLE}
+\newcommand{\myuniversity}{UNIVERSITY}
+\newcommand{\myfaculty}{FACULTY}
+\newcommand{\mydepartment}{DEPARTMENT}
+\newcommand{\mycourse}{TROCAR PARA A MATÉRIA}
+\newcommand{\myprofessor}{TROCAR PARA O PROFESSOR}
+
+% This logic makes \thetitle and \theauthor available to your custom title page
+\makeatletter
+\let\thetitle\@title
+\let\theauthor\@author
+\let\thedate\@date
+\makeatother
+
+%=====================================================
+% DOCUMENT BODY
+%=====================================================
+\begin{document}
+% 1. Render the title page from its dedicated file
+\input{settings/titlepage.tex}
+\newpage
+\thispagestyle{empty}
+\mbox{} 
+\newpage 
+\pagenumbering{Roman}
+%2. Add Table of Contents, etc.
+\begingroup
+  \let\clearpage\relax % Temporarily tells LaTeX \clearpage does nothing
+  \tableofcontents
+  \vspace*{30pt}
+  \listoffigures
+  \vspace*{30pt}
+  \listoftables
+\endgroup
+\cleardoublepage
+
+% 3. Include the main content
+\pagenumbering{arabic}
+\part{Relatório Técnico} \label{part:relatório_técnico}
+\input{content/Relatório Técnico/01_introduction}
+\part{Memorial de Cálculo} \label{part:memorial_de_calculo}
+\input{content/Memorial de cálculo/01_Chapter 01}
+
+
+% 4. Print the bibliography
+\printbibliography
+
+\include{content/Z_Apendix}
+
+\end{document}

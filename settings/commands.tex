@@ -1,0 +1,111 @@
+% In: settings/commands.tex
+
+% Setup for hyperref package
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    filecolor=magenta,
+    urlcolor=cyan,
+    pdftitle={Relatório Técnico e Memorial de Cálculo},
+    pdfpagemode=FullScreen,
+}
+
+% Path for figures (assumes a 'figures' folder in the root directory)
+\graphicspath{ {./figures/} }
+
+% Connect the .bib file to biblatex
+\addbibresource{references.bib}
+
+% Custom environment for indented quotes/citations
+\newenvironment{cited3}
+{\vspace{12pt}\hfill\begin{minipage}{12cm}}
+        {\end{minipage}\vspace{12pt}}
+
+% Configure the header and footer style with fancyhdr
+\makeatletter
+\let\Oldpart\part
+\newcommand{\parttitle}{}
+\renewcommand{\part}[1]{\renewcommand{\parttitle}{#1}\Oldpart{#1}}
+\makeatother
+
+\pagestyle{fancy}
+\fancyhf{} % Clear all header and footer fields
+\fancyhead[LO]{\fontfamily{LinuxBiolinumT-OsF}\selectfont \myheadertitle}
+\fancyhead[RE]{\fontfamily{LinuxBiolinumT-OsF}\selectfont \parttitle}
+\cfoot{\thepage}
+
+\fancypagestyle{plain}{
+\fancyhf{} % Clear all header and footer fields
+\fancyhead[LO]{\fontfamily{LinuxBiolinumT-OsF}\selectfont \myheadertitle}
+\fancyhead[RE]{\fontfamily{LinuxBiolinumT-OsF}\selectfont \parttitle}
+\cfoot{\thepage}
+}
+
+\lstset{style = solarized-light, language=Python}
+% dracula
+% black-on-white
+% gnometerm
+% gotham
+% gruvbox-dark
+% gruvbox-light
+% material
+% nancy
+% neon
+% rydgel
+% nord
+% seashells
+% smyck
+% solarized-dark
+% solarized-light
+% tokyonight
+% white-on-black
+% wild-cherry
+% zenburn
+% vscode
+% jupyter
+% mystyle
+
+
+
+\makeatletter
+
+% --- Patches for \chapter (numbered) ---
+
+% 1. Space ABOVE "Chapter X"
+\patchcmd{\@makechapterhead}
+  {\vspace*{50\p@}}
+  {\vspace*{-25\p@}}
+  {}{}
+
+% 2. Space BETWEEN "Chapter X" and "Title" (This is the new one!)
+\patchcmd{\@makechapterhead}
+  {\vskip 20\p@}     % This is the default space
+  {\vskip 10\p@}      % <-- CHANGE THIS to your desired space
+  {}{}
+
+% 3. Space BELOW "Title"
+\patchcmd{\@makechapterhead}
+  {\vskip 40\p@}
+  {\vspace*{10\p@}} % Your original replacement
+  {}{}
+
+% --- Patches for \chapter* (starred) ---
+% (These only have space above and below the title)
+
+% 1. Space ABOVE "Title"
+\patchcmd{\@makeschapterhead}
+  {\vspace*{50\p@}}
+  {\vspace*{-25\p@}}
+  {}{}
+
+% 2. Space BELOW "Title"
+\patchcmd{\@makeschapterhead}
+  {\vskip 40\p@}
+  {\vspace*{10\p@}} % Your original replacement
+  {}{}
+
+\makeatother
+
+\counterwithin{chapter}{part}
+\renewcommand{\thechapter}{\arabic{chapter}}
