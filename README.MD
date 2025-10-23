@@ -9,10 +9,10 @@ O projeto está organizado da seguinte forma:
 ```
 .
 ├── content
-│   ├── 01_introduction.tex
-│   ├── 02_development.tex
-│   ├── 03_conclusion.tex
-│   └── Z_appendix.tex
+│   ├── Relatório Técnico
+│   │   └── 01_introduction.tex 
+│   └── Memorial de Cálculo
+│       └── 01_chapter 01.tex
 ├── figures
 │   └── logo_unb.png
 ├── main.tex
