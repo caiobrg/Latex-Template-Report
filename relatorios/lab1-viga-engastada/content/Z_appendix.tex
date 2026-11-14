@@ -1,0 +1,36 @@
+\clearpage
+\appendix
+\section{Código completo}
+\label{ap:codigo}
+
+Este apêndice traz o código numérico completo usado na análise. Os scripts simbólicos
+da Seção~\ref{sec:intro} já aparecem por inteiro nos
+Códigos~\ref{lst:solucao_geral} a~\ref{lst:frf} e não são repetidos.
+
+Os arquivos ficam na pasta \texttt{codigo/} e leem os dados de \texttt{dados/}. Para
+reproduzir as figuras e tabelas, basta executar, dentro de \texttt{codigo/},
+\begin{center}
+    \texttt{python gera\_resultados.py}
+\end{center}
+com Python 3.11 ou mais recente e os pacotes listados em \texttt{requirements.txt}
+(NumPy, SciPy, Matplotlib, SciencePlots e SymPy). O estilo SciencePlots usa o
+\LaTeX{} do sistema para escrever os textos das figuras. Os comentários
+\texttt{\# <{}<nome>{}>} marcam os trechos reproduzidos ao longo do texto.
+
+\lstinputlisting[caption={\texttt{parametros.py}: parâmetros da viga e conversão
+            $\lambda_r \leftrightarrow f_r$.}, label={lst:ap_parametros}]{codigo/parametros.py}
+
+\lstinputlisting[caption={\texttt{dados.py}: leitura dos arquivos e FRF do martelo a
+            partir da série temporal.}, label={lst:ap_dados}]{codigo/dados.py}
+
+\lstinputlisting[caption={\texttt{identificacao.py}: picos e método da meia
+            potência.}, label={lst:ap_identificacao}]{codigo/identificacao.py}
+
+\lstinputlisting[caption={\texttt{modelo.py}: equações características, modos e
+            FRF analítica.}, label={lst:ap_modelo}]{codigo/modelo.py}
+
+\lstinputlisting[caption={\texttt{ajuste\_molas.py}: ajuste das rigidezes da base,
+            validação e sensibilidade.}, label={lst:ap_ajuste}]{codigo/ajuste_molas.py}
+
+\lstinputlisting[caption={\texttt{gera\_resultados.py}: processamento completo,
+            figuras e tabelas.}, label={lst:ap_gera}]{codigo/gera_resultados.py}

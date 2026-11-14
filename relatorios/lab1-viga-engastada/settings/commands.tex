@@ -1,0 +1,77 @@
+% In: settings/commands.tex
+
+% Setup for hyperref package
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    filecolor=magenta,
+    urlcolor=cyan,
+}
+
+% Path for figures (assumes a 'figures' folder in the root directory)
+\graphicspath{ {./figures/} }
+
+% Connect the .bib file to biblatex
+\addbibresource{references.bib}
+
+% Custom environment for indented quotes/citations
+\newenvironment{cited3}
+{\vspace{12pt}\hfill\begin{minipage}{12cm}}
+        {\end{minipage}\vspace{12pt}}
+
+% Configure the header and footer style with fancyhdr
+\pagestyle{fancy}
+\fancyhf{} % Clear all header and footer fields
+\rhead{\fontfamily{LinuxBiolinumT-OsF}\selectfont \myheadertitle}
+\lhead{\fontfamily{LinuxBiolinumT-OsF}\selectfont \footnotesize \leftmark}
+\cfoot{\thepage}
+
+\lstset{style = solarized-light, language=Python}
+\renewcommand{\lstlistingname}{Código}
+\renewcommand{\lstlistlistingname}{Lista de Códigos}
+
+% Unidade imaginária
+\newcommand{\iu}{\mathrm{i}}
+
+% Números com vírgula decimal (siunitx)
+\sisetup{output-decimal-marker = {,}, retain-explicit-plus = true}
+
+% Páginas só com figuras/tabelas começam no topo, e não centralizadas
+\makeatletter
+\setlength{\@fptop}{0pt}
+\makeatother
+
+% Linhas de tabela geradas por codigo/gera_resultados.py (\input primitivo, que
+% pode ser usado dentro de tabular sem quebrar \bottomrule)
+\makeatletter
+\newcommand{\linhas}[1]{\@@input tabelas/#1.tex }
+\makeatother
+
+% Trecho de um arquivo de código delimitado por comentários "# <<nome>>" e
+% "# <<fim_nome>>". Uso: \trecho[opções]{arquivo.py}{nome}{legenda}
+\newcommand{\trecho}[4][]{%
+    \lstinputlisting[linerange={#3-fim_#3}, includerangemarker=false,
+        rangeprefix=\#\ <<, rangesuffix=>>, caption={#4}, #1]{codigo/#2}}
+% dracula
+% black-on-white
+% gnometerm
+% gotham
+% gruvbox-dark
+% gruvbox-light
+% material
+% nancy
+% neon
+% rydgel
+% nord
+% seashells
+% smyck
+% solarized-dark
+% solarized-light
+% tokyonight
+% white-on-black
+% wild-cherry
+% zenburn
+% vscode
+% jupyter
+% mystyle

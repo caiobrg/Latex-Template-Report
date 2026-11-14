@@ -1,0 +1,49 @@
+\section{Conclusão}
+\label{sec:conclusao}
+
+As frequências naturais e os fatores de amortecimento da viga foram identificados nos
+ensaios com martelo e com \emph{shaker} e comparados com o modelo de Euler--Bernoulli
+com duas condições de contorno na base. As principais conclusões são:
+
+\begin{itemize}
+    \item O ensaio com martelo identificou seis modos de flexão, em \num{25.2};
+          \num{164.1}; \num{459.0}; \num{893.2}; \num{1462.3} e \SI{2157.5}{\hertz}.
+          Recalcular a FRF a partir da série temporal, com registros de \SI{3}{\second}
+          que contêm toda a resposta, foi essencial para o primeiro modo: a FRF exportada
+          pelo Dewesoft, com $\Delta f = \SI{2.44}{\hertz}$, leva a $\zeta_1 =
+          \SI{6.1}{\percent}$, contra $\SI{2.40}{\percent}$ com a FRF recalculada. Os
+          demais modos têm $\zeta_r$ entre \SI{0.20}{\percent} e \SI{0.61}{\percent}.
+
+    \item No ensaio com \emph{shaker}, os modos 1 e 2 ficam \SI{4.6}{\percent} e
+          \SI{2.0}{\percent} abaixo dos do martelo e os modos 3 e 4, cerca de
+          \SI{8}{\percent} acima. A ligação com o excitador acrescenta massa à ponta e
+          restringe sua rotação, de modo que os dois ensaios não medem exatamente o
+          mesmo sistema. Os amortecimentos do \emph{shaker} acima do primeiro modo são
+          superestimados pela resolução da varredura, que deixa de 1 a 3 pontos em cada
+          banda de meia potência.
+
+    \item Os ensaios foram feitos sem a massa de \SI{0.445}{\kilo\gram} na ponta, e os
+          dados confirmam isso. Com a massa, o primeiro modo cairia para no máximo
+          \SI{15.8}{\hertz} (engaste ideal) e o segundo para no máximo
+          \SI{146.8}{\hertz}, abaixo dos valores medidos. Com a base elástica ajustada, as
+          frequências com a massa seriam \num{13.3}; \num{123.4}; \num{381.2} e
+          \SI{756.3}{\hertz} nos quatro primeiros modos, reduções de
+          \SIrange{47}{12}{\percent} em relação ao caso sem massa.
+
+    \item O engaste ideal superestima todas as frequências em \SIrange{19}{24}{\percent}.
+          A base elástica com $\kappa_R$ e $\kappa_L$ ajustadas aos dois primeiros picos
+          ($k_R = \SI{2.8e3}{\newton\meter\per\radian}$,
+          $k_L = \SI{2.8e6}{\newton\per\meter}$) prevê o modo 3 com erro de
+          \SI{-0.7}{\percent} e o modo 4 com \SI{-4.3}{\percent}, e reproduz o nível da
+          FRF em baixa frequência. Entre as duas hipóteses, é a condição de contorno
+          adequada. A rigidez à rotação é bem determinada pelo ajuste; a rigidez
+          transversal, não, e varia de \num{1000} a \num{2600} (em $\kappa_L$) com
+          \SI{1}{\percent} de variação em $f_2$.
+
+    \item O modelo ajustado subestima os modos 5 e 6 em cerca de \SI{8}{\percent}, e o
+          sinal da constante modal do modo 5 só concorda com as formas do engaste. Como a
+          razão entre as frequências medidas e as do engaste é quase constante
+          (\numrange{0.81}{0.84}), parte da diferença deve vir dos parâmetros nominais
+          da viga, e não só da fixação. Medir a espessura e a massa da viga e obter a
+          resposta em mais pontos, incluindo a base, permitiria separar os dois efeitos.
+\end{itemize}

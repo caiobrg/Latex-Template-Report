@@ -1,0 +1,4 @@
+# As figuras e o relatório compilado são PDFs, ignorados pelo .gitignore da raiz
+!figures/*.pdf
+!Relatorio_Lab1_Viga_Engastada.pdf
+__pycache__/

@@ -1,0 +1,72 @@
+
+% In: main.tex
+\documentclass[12pt, a4paper]{article}
+
+%=====================================================
+% PREAMBLE: Load all packages and custom settings
+%=====================================================
+\input{settings/packages.tex}
+\input{settings/lststyles.tex}
+\input{settings/commands.tex}
+\input{tabelas/valores.tex} % valores gerados por codigo/gera_resultados.py
+
+%=====================================================
+% DOCUMENT-SPECIFIC INFORMATION (METADATA)
+% Define all variables for this specific document here.
+%=====================================================
+% --- Main Info ---
+\title{Laboratório 1 - Viga engastada}
+\author{Caio Braga Melo Jinkings - \textbf{221021616} \\
+        Weider Rodrigues de Oliveira - \textbf{211028570}}
+
+\date{\today}
+
+% --- Custom Variables ---
+\newcommand{\myheadertitle}{Laboratório 1}
+\newcommand{\myuniversity}{Universidade de Brasília}
+\newcommand{\myfaculty}{Faculdade de Tecnologia}
+\newcommand{\mydepartment}{Departamento de Engenharia Mecânica}
+\newcommand{\mycourse}{PCMEC0147 - Vibrações Mecânicas}
+\newcommand{\myprofessor}{Aline Souza de Paula}
+
+% This logic makes \thetitle and \theauthor available to your custom title page
+\makeatletter
+\let\thetitle\@title
+\let\theauthor\@author
+\let\thedate\@date
+\makeatother
+
+%=====================================================
+% DOCUMENT BODY
+%=====================================================
+\begin{document}
+
+% 1. Render the title page from its dedicated file
+\input{settings/titlepage.tex}
+
+% 2. Add Table of Contents, etc.
+\tableofcontents
+\listoffigures
+\listoftables
+\lstlistoflistings
+\pagebreak
+
+% 3. Include the main content
+\input{content/01_introduction}
+\input{content/02_development}
+\input{content/03_results}
+\input{content/04_conclusion}
+
+% 4. Print the bibliography
+\clearpage
+\begingroup
+\small
+\setlength{\bibitemsep}{0.25\baselineskip}
+\printbibliography[heading=bibintoc]
+\endgroup
+
+% 5. Apêndice: código completo
+\input{content/Z_appendix}
+
+
+\end{document}

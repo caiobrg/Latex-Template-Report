@@ -1,0 +1,576 @@
+\section{Introdução teórica}
+\label{sec:intro}
+
+O experimento consiste em uma viga esbelta de aço com uma extremidade fixada a um
+suporte rígido por porcas e parafusos e a outra extremidade livre, à qual podem estar
+presas massas concentradas \cite{roteiroLab1}. A viga foi excitada de duas formas:
+por um martelo modal aplicado a \SI{20}{\centi\meter} da extremidade fixa, com a
+resposta medida por um acelerômetro a \SI{35.6}{\centi\meter}; e por um
+\emph{shaker} acoplado à extremidade livre, em varredura senoidal, com força e
+aceleração medidas por uma cabeça de impedância. O objetivo é extrair frequências
+naturais e fatores de amortecimento das respostas medidas e compará-los com um modelo
+analítico.
+
+Esta seção desenvolve esse modelo. Como a fixação real não é perfeitamente rígida, e o
+roteiro pede para avaliar qual condição de contorno descreve melhor a extremidade
+fixa, são consideradas duas hipóteses: um engaste ideal e uma base elástica, com molas
+torcional e transversal. As duas formulações são desenvolvidas em paralelo até a
+equação característica e as formas modais não normalizadas
+(seções~\ref{sec:eb}--\ref{sec:molas}). A normalização e a função de resposta em
+frequência (FRF) seguem o mesmo procedimento nos dois casos, que só diferem nas
+frequências naturais e nas formas modais (seções~\ref{sec:normalizacao} e
+\ref{sec:frf}). Ao fim de cada etapa há um código em SymPy que refaz a dedução
+simbólica e verifica o resultado.
+
+%=====================================================================
+\subsection{Modelo de Euler--Bernoulli e separação de variáveis}
+\label{sec:eb}
+
+Para uma viga esbelta, de seção e material uniformes, sob pequenos deslocamentos e
+desprezando a inércia de rotação e a deformação por cisalhamento, o deslocamento
+transversal $w(x,t)$ obedece à equação de Euler--Bernoulli
+\cite{rao2019,meirovitch2001}
+\begin{equation}
+    EI\,\frac{\partial^4 w}{\partial x^4} + \rho A\,\frac{\partial^2 w}{\partial t^2}
+    = f(x,t),
+    \label{eq:eb}
+\end{equation}
+em que $E$ é o módulo de elasticidade, $I$ o momento de inércia de área da seção,
+$\rho$ a massa específica, $A$ a área da seção e $f(x,t)$ a força distribuída por
+unidade de comprimento.
+
+Para obter as frequências naturais, toma-se $f = 0$ e procura-se uma solução da forma
+$w(x,t) = W(x)\,g(t)$. Substituindo em \eqref{eq:eb} e separando as variáveis,
+\begin{equation*}
+    -\frac{\ddot g}{g} = \frac{EI}{\rho A}\,\frac{W''''}{W} = \omega^2,
+\end{equation*}
+pois o lado esquerdo depende só de $t$ e o direito só de $x$; logo, ambos são iguais
+a uma constante, escrita como $\omega^2$. Resultam duas equações diferenciais
+ordinárias:
+\begin{subequations}
+    \label{eq:separadas}
+    \begin{align}
+        \ddot g + \omega^2 g & = 0, \label{eq:temporal}                           \\
+        W'''' - \beta^4 W    & = 0, \qquad \beta^4 = \frac{\rho A}{EI}\,\omega^2.
+        \label{eq:espacial}
+    \end{align}
+\end{subequations}
+
+A equação~\eqref{eq:temporal} é a de um sistema não amortecido de um grau de
+liberdade, com solução harmônica $g = G\,e^{\iu\omega t}$. Para a parte espacial,
+supondo $W = B\,e^{sx}$ em \eqref{eq:espacial},
+\begin{equation*}
+    (s^4 - \beta^4)\,B\,e^{sx} = 0 \quad\Longrightarrow\quad
+    s_{1,2} = \pm\iu\beta, \qquad s_{3,4} = \pm\beta,
+\end{equation*}
+e a combinação das quatro exponenciais pode ser reescrita com funções trigonométricas
+e hiperbólicas:
+\begin{equation}
+    W(x) = C_1\cos\beta x + C_2\sin\beta x + C_3\cosh\beta x + C_4\sinh\beta x.
+    \label{eq:Wgeral}
+\end{equation}
+
+As constantes $C_1,\dots,C_4$ e os valores admissíveis de $\beta$ são determinados
+pelas quatro condições de contorno, duas em cada extremidade. Com o parâmetro
+adimensional $\lambda = \beta L$, as frequências naturais seguem de
+\eqref{eq:espacial}:
+\begin{equation}
+    \omega_r = \beta_r^2\sqrt{\frac{EI}{\rho A}}
+    = \frac{\lambda_r^2}{L^2}\sqrt{\frac{EI}{\rho A}},
+    \qquad r = 1, 2, \dots
+    \label{eq:omega}
+\end{equation}
+
+\lstinputlisting[caption={Separação de variáveis e solução geral da equação de
+            Euler--Bernoulli.}, label={lst:solucao_geral}]{codigo/solucao_geral.py}
+
+%=====================================================================
+\subsection{Condições de contorno}
+\label{sec:contorno}
+
+A Figura~\ref{fig:modelos} mostra os dois modelos considerados. Em ambos, a
+extremidade $x = L$ é livre e pode carregar uma massa concentrada $m$, como a massa
+$m_{\mathrm{end}}$ da bancada descrita no roteiro \cite{roteiroLab1}. Os ensaios
+analisados neste relatório foram feitos sem essa massa, isto é, com $m = 0$. A
+formulação geral é mantida porque permite estimar, na Seção~\ref{sec:massa}, quanto as
+frequências naturais mudariam com a massa, e porque uma massa pequena também
+representa a cabeça de impedância presa à ponta no ensaio com \emph{shaker}. Os
+modelos diferem apenas na extremidade $x = 0$.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{\textwidth}
+        \centering
+        \begin{tikzpicture}[>=Latex, scale=1.1]
+            % engaste
+            \fill[pattern=north east lines] (-0.35,-0.9) rectangle (0,0.9);
+            \draw[thick] (0,-0.9) -- (0,0.9);
+            % viga
+            \draw[fill=gray!20] (0,-0.1) rectangle (6,0.1);
+            \draw[dash dot, gray] (0,0) -- (6,0);
+            % massa na ponta
+            \draw[fill=gray!60] (6,0) circle (0.28);
+            \node at (6,0.55) {$m$};
+            % eixos
+            \draw[->] (6.4,0) -- (7.2,0) node[right] {$x$};
+            \draw[->] (3.6,0.1) -- (3.6,0.9) node[above] {$w(x,t)$};
+            % força
+            \draw[->, thick] (2.0,1.0) -- (2.0,0.12);
+            \node[above] at (2.0,1.0) {$f(x,t)$};
+            % propriedades e cota
+            \node at (4.6,-0.4) {$EI,\ \rho A$};
+            \draw[|<->|] (0,-1.15) -- (6,-1.15) node[midway, fill=white] {$L$};
+            \node[above] at (-0.17,0.9) {$x=0$};
+        \end{tikzpicture}
+        \caption{Base engastada: $w(0,t) = 0$ e $w'(0,t) = 0$.}
+        \label{fig:modelo_engaste}
+    \end{subfigure}
+
+    \vspace{0.6cm}
+
+    \begin{subfigure}{\textwidth}
+        \centering
+        \begin{tikzpicture}[>=Latex, scale=1.1]
+            % parede da mola torcional
+            \fill[pattern=north east lines] (-1.35,-0.6) rectangle (-1.05,0.6);
+            \draw[thick] (-1.05,-0.6) -- (-1.05,0.6);
+            % viga
+            \draw[fill=gray!20] (0,-0.1) rectangle (6,0.1);
+            \draw[dash dot, gray] (0,0) -- (6,0);
+            % mola torcional (espiral centrada em x = 0, termina em 180 graus)
+            \fill[white] (0,0) circle (0.4);
+            \draw[thick, domain=0:3*pi, samples=150, variable=\t]
+            plot ({\t r}:{0.04*\t});
+            \draw[thick] (-0.377,0) -- (-1.05,0);
+            \fill (0,0) circle (0.045);
+            \node at (-0.55,0.45) {$k_R$};
+            % mola transversal
+            \draw[thick] (0.6,-0.1) -- (0.6,-0.35);
+            \draw[thick, decorate,
+                decoration={zigzag, segment length=5pt, amplitude=4pt}]
+            (0.6,-0.35) -- (0.6,-1.05);
+            \draw[thick] (0.6,-1.05) -- (0.6,-1.2);
+            \fill[pattern=north east lines] (0.25,-1.45) rectangle (0.95,-1.2);
+            \draw[thick] (0.25,-1.2) -- (0.95,-1.2);
+            \node[right] at (0.75,-0.7) {$k_L$};
+            % massa na ponta
+            \draw[fill=gray!60] (6,0) circle (0.28);
+            \node at (6,0.55) {$m$};
+            % eixos
+            \draw[->] (6.4,0) -- (7.2,0) node[right] {$x$};
+            \draw[->] (3.6,0.1) -- (3.6,0.9) node[above] {$w(x,t)$};
+            % força
+            \draw[->, thick] (2.0,1.0) -- (2.0,0.12);
+            \node[above] at (2.0,1.0) {$f(x,t)$};
+            % propriedades e cota
+            \node at (4.6,-0.4) {$EI,\ \rho A$};
+            \draw[|<->|] (0,-1.75) -- (6,-1.75) node[midway, fill=white] {$L$};
+        \end{tikzpicture}
+        \caption{Base elástica: mola torcional $k_R$ e mola transversal $k_L$ em
+            $x = 0$.}
+        \label{fig:modelo_molas}
+    \end{subfigure}
+    \caption{Modelos da viga com massa concentrada na extremidade livre.}
+    \label{fig:modelos}
+\end{figure}
+
+Os esforços internos seguem a convenção da Figura~\ref{fig:convencao}a: momento
+fletor $M = EI\,w''$ e esforço cortante $Q = -EI\,w'''$, positivos como indicado na
+face de normal $+x$ e opostos na face de normal $-x$. Com essa convenção, o equilíbrio
+do elemento dá $M' = -Q$.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[>=Latex, scale=1.0]
+        % ---------- (a) elemento
+        \begin{scope}
+            \draw[fill=gray!20] (0,-0.3) rectangle (1.6,0.3);
+            \draw[->, thick] (-0.15,0.65) -- (-0.15,-0.65) node[below] {$Q$};
+            \draw[->, thick] (1.75,-0.65) -- (1.75,0.65) node[above] {$Q + \mathrm{d}Q$};
+            \draw[->, thick] (0,0) ++(215:0.6) arc (215:145:0.6);
+            \node[left] at (-0.6,0) {$M$};
+            \draw[->, thick] (1.6,0) ++(-35:0.6) arc (-35:35:0.6);
+            \node[right] at (2.2,0) {$M + \mathrm{d}M$};
+            \node at (0.8,-1.8) {(a)};
+        \end{scope}
+        % ---------- (b) base com molas
+        \begin{scope}[xshift=6.6cm]
+            \draw[fill=gray!20] (0,-0.1) rectangle (1.8,0.1);
+            \draw[->, thick] (0,0.75) -- (0,0.12);
+            \node[above] at (0,0.75) {$k_L\,w(0)$};
+            \draw[->, thick] (0,0) ++(215:0.5) arc (215:145:0.5);
+            \node[left] at (-0.5,0) {$k_R\,w'(0)$};
+            \node at (0.9,-1.8) {(b)};
+        \end{scope}
+        % ---------- (c) massa na ponta
+        \begin{scope}[xshift=11.6cm]
+            \draw[fill=gray!60] (0,0) circle (0.3);
+            \node at (0,0) {$m$};
+            \draw[->, thick] (0,-0.32) -- (0,-1.0) node[right] {$Q(L)$};
+            \draw[->, thick, dashed] (0.55,0) -- (0.55,0.8) node[above] {$m\,\ddot w(L)$};
+            \node at (0,-1.8) {(c)};
+        \end{scope}
+    \end{tikzpicture}
+    \caption{(a) Convenção de sinais dos esforços internos em um elemento $\mathrm{d}x$.
+        (b) Ações das molas sobre a viga em $x=0$ para $w(0)>0$ e $w'(0)>0$.
+        (c) Diagrama de corpo livre da massa na ponta.}
+    \label{fig:convencao}
+\end{figure}
+
+\subsubsection{Extremidade livre com massa concentrada ($x = L$)}
+
+Tratando a massa como uma partícula (sem inércia de rotação), ela não transmite
+momento, e a única força que recebe é a cortante da viga
+(Fig.~\ref{fig:convencao}c). Assim,
+\begin{subequations}
+    \label{eq:cc_ponta}
+    \begin{align}
+        M(L,t) = EI\,w''(L,t) = 0
+         & \quad\Longrightarrow\quad W''(L) = 0, \label{eq:cc_ponta_M}           \\
+        Q(L,t) = -EI\,w'''(L,t) = -m\,\ddot w(L,t)
+         & \quad\Longrightarrow\quad W'''(L) = -\frac{m}{\rho A}\,\beta^4\,W(L),
+        \label{eq:cc_ponta_Q}
+    \end{align}
+\end{subequations}
+onde se usou $\ddot g = -\omega^2 g$, que dá $EI\,W'''(L) = -m\,\omega^2 W(L)$, e
+\eqref{eq:espacial}. Definindo a razão entre a
+massa da ponta e a massa da viga,
+\begin{equation}
+    \mu = \frac{m}{\rho A L},
+    \label{eq:mu}
+\end{equation}
+e dividindo \eqref{eq:cc_ponta_Q} por $\beta^3$, a condição de cortante fica
+$W'''(L)/\beta^3 = -\mu\lambda\,W(L)$. Essas duas condições valem para os dois
+modelos.
+
+\subsubsection{Estrutura comum do problema de autovalor}
+\label{sec:estrutura}
+
+Em cada modelo, as duas condições em $x = 0$ eliminam $C_3$ e $C_4$ de
+\eqref{eq:Wgeral}, e a forma modal passa a depender só de $C_1$ e $C_2$:
+\begin{equation}
+    W(x) = C_1\,\phi_1(\beta x) + C_2\,\phi_2(\beta x),
+    \label{eq:W_phi}
+\end{equation}
+em que $\phi_1$ e $\phi_2$ são funções conhecidas para cada modelo. Substituindo
+\eqref{eq:W_phi} nas condições \eqref{eq:cc_ponta} e indicando por $\phi_j'$ a derivada
+em relação ao argumento $\zeta = \beta x$, obtém-se o sistema homogêneo
+\begin{equation}
+    \underbrace{\begin{bmatrix}
+            \phi_1''(\lambda)                                & \phi_2''(\lambda) \\[2pt]
+            \phi_1'''(\lambda) + \mu\lambda\,\phi_1(\lambda) &
+            \phi_2'''(\lambda) + \mu\lambda\,\phi_2(\lambda)
+        \end{bmatrix}}_{\mathbf{B}(\lambda)}
+    \begin{Bmatrix} C_1 \\ C_2 \end{Bmatrix}
+    = \begin{Bmatrix} 0 \\ 0 \end{Bmatrix}.
+    \label{eq:sistema}
+\end{equation}
+A solução não trivial exige $\det\mathbf{B}(\lambda) = 0$, que é a
+equação característica. Suas raízes $\lambda_r$ dão as frequências naturais por
+\eqref{eq:omega}. Para cada raiz, a primeira linha de \eqref{eq:sistema} fixa a razão
+entre as constantes,
+\begin{equation}
+    \gamma_r = \frac{C_2}{C_1} = -\frac{\phi_1''(\lambda_r)}{\phi_2''(\lambda_r)},
+    \label{eq:gamma}
+\end{equation}
+e a forma modal fica determinada a menos de uma constante:
+\begin{equation}
+    W_r(x) = C_r\,F_r(x), \qquad
+    F_r(x) = \phi_1(\beta_r x) + \gamma_r\,\phi_2(\beta_r x).
+    \label{eq:Fr}
+\end{equation}
+
+\lstinputlisting[caption={Condições de contorno na extremidade com massa
+            concentrada, em forma adimensional.}, label={lst:contorno}]{codigo/contorno_ponta.py}
+
+%=====================================================================
+\subsection{Caso 1: base engastada}
+\label{sec:engaste}
+
+No engaste ideal (Fig.~\ref{fig:modelo_engaste}), o deslocamento e a rotação são nulos:
+\begin{subequations}
+    \label{eq:cc_engaste}
+    \begin{align}
+        w(0,t) = 0  & \quad\Longrightarrow\quad W(0) = C_1 + C_3 = 0,           \\
+        w'(0,t) = 0 & \quad\Longrightarrow\quad W'(0) = \beta\,(C_2 + C_4) = 0,
+    \end{align}
+\end{subequations}
+de modo que $C_3 = -C_1$ e $C_4 = -C_2$. A forma \eqref{eq:W_phi} fica
+\begin{equation}
+    W(x) = C_1\left(\cos\beta x - \cosh\beta x\right)
+    + C_2\left(\sin\beta x - \sinh\beta x\right),
+    \label{eq:W_engaste}
+\end{equation}
+ou seja, $\phi_1(\zeta) = \cos\zeta - \cosh\zeta$ e
+$\phi_2(\zeta) = \sin\zeta - \sinh\zeta$. As derivadas necessárias são
+\begin{align*}
+    \phi_1'' & = -(\cos\zeta + \cosh\zeta), & \phi_1''' & = \sin\zeta - \sinh\zeta,    \\
+    \phi_2'' & = -(\sin\zeta + \sinh\zeta), & \phi_2''' & = -(\cos\zeta + \cosh\zeta),
+\end{align*}
+e os elementos da matriz de \eqref{eq:sistema} são
+\begin{equation}
+    \begin{aligned}
+        A_{11} & = -(\cos\lambda + \cosh\lambda),                                          &
+        A_{21} & = \sin\lambda - \sinh\lambda + \mu\lambda(\cos\lambda - \cosh\lambda),      \\
+        A_{12} & = -(\sin\lambda + \sinh\lambda),                                          &
+        A_{22} & = -(\cos\lambda + \cosh\lambda) + \mu\lambda(\sin\lambda - \sinh\lambda).
+    \end{aligned}
+    \label{eq:A_engaste}
+\end{equation}
+
+Expandindo o determinante e usando $\cos^2\lambda + \sin^2\lambda = 1$ e
+$\cosh^2\lambda - \sinh^2\lambda = 1$, chega-se a
+$\det\mathbf{B} = 2\left[1 + \cos\lambda\cosh\lambda
+        + \mu\lambda(\cos\lambda\sinh\lambda - \sin\lambda\cosh\lambda)\right]$, e a equação
+característica é
+\begin{equation}
+    1 + \cos\lambda\cosh\lambda
+    + \mu\lambda\left(\cos\lambda\sinh\lambda - \sin\lambda\cosh\lambda\right) = 0.
+    \label{eq:car_engaste}
+\end{equation}
+A equação é transcendental e suas raízes $\lambda_r$ precisam ser obtidas
+numericamente. Sem massa na ponta ($\mu = 0$), ela se reduz à equação clássica da viga
+engastada-livre, $1 + \cos\lambda\cosh\lambda = 0$, com
+$\lambda_r = 1{,}8751;\ 4{,}6941;\ 7{,}8548;\ \dots$ \cite{rao2019}. A massa na ponta
+reduz esses valores.
+
+Por \eqref{eq:gamma}, a forma modal não normalizada do modo $r$ é
+\begin{equation}
+    F_r(x) = \cos\beta_r x - \cosh\beta_r x
+    - \frac{\cos\lambda_r + \cosh\lambda_r}{\sin\lambda_r + \sinh\lambda_r}
+    \left(\sin\beta_r x - \sinh\beta_r x\right).
+    \label{eq:F_engaste}
+\end{equation}
+
+\lstinputlisting[caption={Caso engastado: matriz $\mathbf{A}$, equação característica e
+            forma modal.}, label={lst:engaste}]{codigo/caso_engastado.py}
+
+%=====================================================================
+\subsection{Caso 2: base elástica}
+\label{sec:molas}
+
+No segundo modelo (Fig.~\ref{fig:modelo_molas}), a fixação em $x=0$ é representada
+por uma mola torcional de rigidez $k_R$, que resiste à rotação, e uma mola transversal
+de rigidez $k_L$, que resiste ao deslocamento. Para $w(0) > 0$ e $w'(0) > 0$, as
+molas aplicam sobre a viga uma força $k_L w(0)$ para baixo e um momento
+$k_R w'(0)$ horário (Fig.~\ref{fig:convencao}b). Pela convenção da
+Figura~\ref{fig:convencao}a, essas ações correspondem a
+\begin{subequations}
+    \label{eq:cc_molas}
+    \begin{align}
+        M(0,t) & = EI\,w''(0,t) = k_R\,w'(0,t), \label{eq:cc_molas_M}  \\
+        Q(0,t) & = -EI\,w'''(0,t) = k_L\,w(0,t). \label{eq:cc_molas_Q}
+    \end{align}
+\end{subequations}
+Essas condições também são as condições naturais do princípio de Hamilton quando as
+molas armazenam a energia $\tfrac12 k_R w'(0)^2 + \tfrac12 k_L w(0)^2$
+\cite{meirovitch2001}. Substituindo \eqref{eq:Wgeral},
+\begin{align*}
+    EI\beta^2\left(-C_1 + C_3\right)  & = k_R\,\beta\left(C_2 + C_4\right), \\
+    -EI\beta^3\left(-C_2 + C_4\right) & = k_L\left(C_1 + C_3\right).
+\end{align*}
+Definindo as rigidezes adimensionais
+\begin{equation}
+    \alpha_R = \frac{k_R}{EI\beta} = \frac{\kappa_R}{\lambda}, \qquad
+    \alpha_L = \frac{k_L}{EI\beta^3} = \frac{\kappa_L}{\lambda^3}, \qquad
+    \kappa_R = \frac{k_R L}{EI}, \qquad \kappa_L = \frac{k_L L^3}{EI},
+    \label{eq:alphas}
+\end{equation}
+as condições ficam $C_3 = C_1 + \alpha_R(C_2 + C_4)$ e
+$C_4 = C_2 - \alpha_L(C_1 + C_3)$. Resolvendo esse par de equações para $C_3$ e $C_4$:
+\begin{equation}
+    C_3 = \frac{(1 - \alpha_L\alpha_R)\,C_1 + 2\alpha_R\,C_2}{1 + \alpha_L\alpha_R},
+    \qquad
+    C_4 = \frac{-2\alpha_L\,C_1 + (1 - \alpha_L\alpha_R)\,C_2}{1 + \alpha_L\alpha_R}.
+    \label{eq:C3C4_molas}
+\end{equation}
+Os parâmetros $\kappa_R$ e $\kappa_L$ descrevem a fixação e não dependem da
+frequência; já $\alpha_R$ e $\alpha_L$ dependem de $\lambda$, porque a rigidez relativa
+da viga muda com o comprimento de onda do modo. Como $1 + \alpha_L\alpha_R > 0$, esse
+fator pode ser absorvido nas constantes. Redefinindo $C_1$ e $C_2$, a forma
+\eqref{eq:W_phi} vale com
+\begin{subequations}
+    \label{eq:phi_molas}
+    \begin{align}
+        \phi_1(\zeta) & = (1 + \alpha_L\alpha_R)\cos\zeta
+        + (1 - \alpha_L\alpha_R)\cosh\zeta - 2\alpha_L\sinh\zeta, \\
+        \phi_2(\zeta) & = (1 + \alpha_L\alpha_R)\sin\zeta
+        + (1 - \alpha_L\alpha_R)\sinh\zeta + 2\alpha_R\cosh\zeta.
+    \end{align}
+\end{subequations}
+Os elementos da matriz $\mathbf{B}$ de \eqref{eq:sistema} são, então,
+\begin{align*}
+    B_{11} & = -(1 + \alpha_L\alpha_R)\cos\lambda + (1 - \alpha_L\alpha_R)\cosh\lambda
+    - 2\alpha_L\sinh\lambda,                                                           \\
+    B_{12} & = -(1 + \alpha_L\alpha_R)\sin\lambda + (1 - \alpha_L\alpha_R)\sinh\lambda
+    + 2\alpha_R\cosh\lambda,                                                           \\
+    B_{21} & = (1 + \alpha_L\alpha_R)\sin\lambda + (1 - \alpha_L\alpha_R)\sinh\lambda
+    - 2\alpha_L\cosh\lambda + \mu\lambda\,\phi_1(\lambda),                             \\
+    B_{22} & = -(1 + \alpha_L\alpha_R)\cos\lambda + (1 - \alpha_L\alpha_R)\cosh\lambda
+    + 2\alpha_R\sinh\lambda + \mu\lambda\,\phi_2(\lambda).
+\end{align*}
+O determinante tem a forma $\det\mathbf{B} = 2(1 + \alpha_L\alpha_R)\,\Delta(\lambda)$,
+e, como o primeiro fator não se anula, a equação característica é
+$\Delta(\lambda) = 0$:
+\begin{equation}
+    \begin{split}
+        \Delta(\lambda) ={} & 1 + \alpha_L\alpha_R
+        + (\alpha_L\alpha_R - 1)\cos\lambda\cosh\lambda                      \\
+                            & + (\alpha_L - \alpha_R)\cos\lambda\sinh\lambda
+        - (\alpha_L + \alpha_R)\sin\lambda\cosh\lambda                       \\
+                            & + \mu\lambda\Big[(1 - \alpha_L\alpha_R)
+        (\sin\lambda\cosh\lambda - \cos\lambda\sinh\lambda)                  \\
+                            & \qquad\quad - 2\alpha_L\sin\lambda\sinh\lambda
+            - 2\alpha_R\cos\lambda\cosh\lambda\Big] = 0.
+    \end{split}
+    \label{eq:car_molas}
+\end{equation}
+Substituindo \eqref{eq:alphas} e multiplicando por $\lambda^4$, obtém-se uma função
+apenas de $\lambda$ para valores dados de $\kappa_R$, $\kappa_L$ e $\mu$, cujas raízes
+são calculadas numericamente. Há dois limites que servem de verificação:
+\begin{itemize}
+    \item para $\kappa_R, \kappa_L \to \infty$ (molas infinitamente rígidas), dividir
+          \eqref{eq:car_molas} por $\alpha_L\alpha_R$ e fazer $\alpha_L,\alpha_R\to\infty$
+          recupera exatamente a equação do engaste, \eqref{eq:car_engaste};
+    \item para $\kappa_R = \kappa_L = \mu = 0$, resta $1 - \cos\lambda\cosh\lambda = 0$,
+          a equação da viga livre-livre.
+\end{itemize}
+Entre esses limites, as frequências naturais crescem com as rigidezes da base. Isso
+permite ajustar $\kappa_R$ e $\kappa_L$ às frequências medidas e avaliar quanto a
+fixação real se afasta do engaste ideal.
+
+A forma modal não normalizada segue de \eqref{eq:gamma} e \eqref{eq:Fr}:
+\begin{equation}
+    F_r(x) = \phi_1(\beta_r x) - \frac{B_{11}(\lambda_r)}{B_{12}(\lambda_r)}\,
+    \phi_2(\beta_r x),
+    \label{eq:F_molas}
+\end{equation}
+com $\alpha_R$ e $\alpha_L$ avaliados em $\lambda = \lambda_r$.
+
+\lstinputlisting[caption={Caso com base elástica: constantes $C_3$ e $C_4$, matriz
+            $\mathbf{B}$, equação característica e limite engastado.},
+    label={lst:molas}]{codigo/caso_molas.py}
+
+%=====================================================================
+\subsection{Normalização dos modos}
+\label{sec:normalizacao}
+
+As formas modais \eqref{eq:F_engaste} e \eqref{eq:F_molas} estão definidas a menos de
+uma constante: a amplitude física da resposta é o produto dessa constante pela
+amplitude de $g(t)$. Para fixar $C_r$, usa-se a ortogonalidade dos modos.
+Multiplicando \eqref{eq:espacial} do modo $r$ por $W_s$, integrando duas vezes por
+partes em $[0, L]$ e usando as condições de contorno \eqref{eq:cc_ponta} e
+\eqref{eq:cc_molas}, obtém-se
+\begin{multline}
+    \int_0^L EI\,W_r''W_s''\,\mathrm{d}x + k_R\,W_r'(0)W_s'(0) + k_L\,W_r(0)W_s(0) \\
+    = \omega_r^2\left[\int_0^L \rho A\,W_rW_s\,\mathrm{d}x + m\,W_r(L)W_s(L)\right].
+    \label{eq:ortog_deriv}
+\end{multline}
+No caso engastado, os termos das molas desaparecem porque $W(0) = W'(0) = 0$. O lado
+esquerdo é simétrico em $r$ e $s$. Trocando os índices e subtraindo, resulta
+$(\omega_r^2 - \omega_s^2) = 0$, de modo que, para frequências distintas, os
+modos são ortogonais em relação à massa, que inclui a da ponta. Escolhe-se então
+$C_r$ de modo que
+\begin{equation}
+    \int_0^L \rho A\,W_r W_s\,\mathrm{d}x + m\,W_r(L)\,W_s(L) = \delta_{rs},
+    \label{eq:ortonormal}
+\end{equation}
+e, por \eqref{eq:ortog_deriv}, o lado esquerdo daquela equação vale $\omega_r^2\,\delta_{rs}$.
+Com $W_r = C_r F_r$ e seção e densidade constantes,
+\begin{equation}
+    C_r^2\left(\rho A\int_0^L F_r^2\,\mathrm{d}x + m\,F_r^2(L)\right) = 1,
+\end{equation}
+e os modos normalizados são
+\begin{equation}
+    W_r(x) = \frac{F_r(x)}{\left(\rho A\displaystyle\int_0^L F_r^2\,\mathrm{d}x
+        + m\,F_r^2(L)\right)^{1/2}}.
+    \label{eq:Wr_norm}
+\end{equation}
+A expressão é a mesma para os dois modelos: basta usar $F_r$ de
+\eqref{eq:F_engaste} ou de \eqref{eq:F_molas} e as raízes $\lambda_r$ correspondentes.
+
+\lstinputlisting[caption={Normalização pela massa e verificação da ortogonalidade de
+            massa e de rigidez para os dois modelos.}, label={lst:normalizacao}]{codigo/normalizacao.py}
+
+%=====================================================================
+\subsection{Resposta forçada e função de resposta em frequência}
+\label{sec:frf}
+
+A resposta forçada é escrita como superposição modal,
+\begin{equation}
+    w(x,t) = \sum_{r=1}^{\infty} W_r(x)\,\eta_r(t),
+    \label{eq:expansao}
+\end{equation}
+em que $\eta_r$ são as coordenadas modais. Substituindo \eqref{eq:expansao} em
+\eqref{eq:eb}, multiplicando por $W_s$, integrando ao longo da viga e usando
+\eqref{eq:ortonormal} e \eqref{eq:ortog_deriv}, as equações se desacoplam. Acrescenta-se
+um amortecimento viscoso modal $\zeta_r$ (hipótese de amortecimento leve e
+proporcional, \cite{ewins2000}):
+\begin{equation}
+    \ddot\eta_r + 2\zeta_r\omega_r\,\dot\eta_r + \omega_r^2\,\eta_r = N_r(t),
+    \qquad N_r(t) = \int_0^L W_r(x)\,f(x,t)\,\mathrm{d}x.
+    \label{eq:modal}
+\end{equation}
+Sem forçamento e sem amortecimento, \eqref{eq:modal} reduz-se a
+$\ddot\eta_r + \omega_r^2\eta_r = 0$, a mesma equação \eqref{eq:temporal}. Cada
+coordenada modal se comporta, portanto, como um sistema de um grau de liberdade.
+A solução é a soma de uma parcela homogênea, que depende das condições iniciais e
+decai com o amortecimento, e de uma parcela particular, que é a resposta em regime
+permanente.
+
+Para uma força harmônica pontual aplicada em $x = x_i$,
+$f(x,t) = F_0\,\delta(x - x_i)\,e^{\iu\Omega t}$, a força generalizada é
+\begin{equation}
+    N_r(t) = F_0\,e^{\iu\Omega t}\int_0^L \delta(x - x_i)\,W_r(x)\,\mathrm{d}x
+    = F_0\,W_r(x_i)\,e^{\iu\Omega t}.
+    \label{eq:Nr}
+\end{equation}
+
+A solução particular de \eqref{eq:modal} é, então
+\begin{equation}
+    \eta_{r,p}(t) = \frac{F_0\,W_r(x_i)}{\omega_r^2}\,G_r(\iu\Omega)\,e^{\iu\Omega t},
+    \qquad
+    G_r(\iu\Omega) = \frac{1}{1 - \left(\Omega/\omega_r\right)^2
+        + 2\iu\zeta_r\,\Omega/\omega_r},
+    \label{eq:eta_p}
+\end{equation}
+com módulo e fase
+\begin{equation}
+    |G_r| = \frac{1}{\sqrt{\left[1 - (\Omega/\omega_r)^2\right]^2
+            + \left(2\zeta_r\Omega/\omega_r\right)^2}},
+    \qquad
+    \angle G_r = -\arctan \left[ \frac{2\zeta_r\,\Omega/\omega_r}{1 - (\Omega/\omega_r)^2} \right].
+\end{equation}
+Desprezando a parcela homogênea, que já decaiu no regime permanente, a resposta é
+\begin{equation}
+    w(x,t) = F_0\,e^{\iu\Omega t}\sum_{r=1}^{\infty}
+    \frac{W_r(x)\,W_r(x_i)}{\omega_r^2 - \Omega^2 + 2\iu\zeta_r\,\omega_r\Omega}.
+    \label{eq:resposta}
+\end{equation}
+
+A FRF entre um ponto de saída $x_e$ e um ponto de entrada $x_i$ é a razão entre a
+resposta em $x_e$ e a força em $x_i$. Para deslocamento (receptância), de
+\eqref{eq:resposta},
+\begin{equation}
+    H(x_e, x_i, \Omega) = \frac{w(x_e,t)}{f(x_i,t)}
+    = \sum_{r=1}^{\infty}
+    \frac{W_r(x_e)\,W_r(x_i)}{\omega_r^2 - \Omega^2 + 2\iu\zeta_r\,\omega_r\Omega}.
+    \label{eq:H}
+\end{equation}
+A expressão é simétrica em $x_e$ e $x_i$ (reciprocidade). Para o cálculo, a série é
+truncada em um número de modos que cubra com folga a faixa de frequências medida.
+Como os ensaios medem aceleração, a comparação com os dados experimentais usa a
+acelerância, obtida de \eqref{eq:H}:
+\begin{equation}
+    \mathcal{A}(x_e, x_i, \Omega) = \frac{\ddot w(x_e,t)}{f(x_i,t)}
+    = -\Omega^2\,H(x_e, x_i, \Omega).
+    \label{eq:acelerancia}
+\end{equation}
+No ensaio com martelo, $x_i = \SI{0.20}{\meter}$ e $x_e = \SI{0.356}{\meter}$. No
+ensaio com \emph{shaker}, a cabeça de impedância mede força e aceleração no mesmo
+ponto, então a FRF é pontual, com $x_i = x_e = L$. Em ambos os casos, a FRF analítica é
+obtida com as frequências $\omega_r$ e os modos $W_r$ de um dos dois modelos de base e
+com os fatores $\zeta_r$ identificados experimentalmente.
+
+\lstinputlisting[caption={Equação modal, resposta harmônica e FRF analítica
+            (receptância e acelerância).}, label={lst:frf}]{codigo/frf.py}
